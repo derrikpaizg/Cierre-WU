@@ -1,0 +1,19 @@
+# La aplicación está dentro de esta subcarpeta del repositorio.
+[build]
+  base = "cierre-diario-web"
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["mysql2"]
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"
