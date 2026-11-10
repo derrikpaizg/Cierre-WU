@@ -1,0 +1,19 @@
+# Configuración de Netlify para Cierre Diario
+[build]
+  publish = "public"              # la página (HTML, CSS, JS)
+  functions = "netlify/functions" # la API que habla con MySQL
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["mysql2"]
+
+# Encabezados de seguridad para la página
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"

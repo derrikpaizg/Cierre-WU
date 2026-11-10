@@ -1,0 +1,16 @@
+{
+  "name": "cierre-diario-web",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Cierre diario de agencia - versión web (Netlify + MySQL)",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "mysql2": "^3.11.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

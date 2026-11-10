@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cierre Diario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+<div class="app">
+  <aside class="menu">
+    <div class="marca"><b>Cierre Diario</b><span id="lblAgencia">MI AGENCIA</span></div>
+    <nav>
+      <button data-v="cierre" class="activo">📋 Cierre del día</button>
+      <button data-v="reportes">📊 Reportes</button>
+      <button data-v="config">⚙️ Configuración</button>
+    </nav>
+    <div class="pie"><button class="btn sec chico" id="bSalir" style="margin-bottom:10px">Salir</button><br>Versión web<br>Ctrl+S guardar · Ctrl+P PDF<br>Alt+← / Alt+→ cambiar de día</div>
+  </aside>
+
+  <main class="principal">
+    <div class="banner" id="banner"></div>
+
+    <!-- ============ CIERRE ============ -->
+    <section class="vista activa" id="v-cierre">
+      <div class="barra">
+        <span class="etq">Fecha:</span>
+        <button class="btn sec" id="bAnt" title="Día anterior (Alt+←)">◀</button>
+        <input type="date" id="fecha">
+        <button class="btn sec" id="bSig" title="Día siguiente (Alt+→)">▶</button>
+        <button class="btn sec" id="bHoy">Hoy</button>
+        <span class="etq">Tasa (C$ por $):</span>
+        <input class="num tasa" id="tasa" inputmode="decimal">
+        <button class="btn" id="bGuardar">Guardar (Ctrl+S)</button>
+        <button class="btn neutro" id="bCerrar">Cerrar día</button>
+        <button class="btn peligro" id="bPdf">PDF del día</button>
+        <span class="estado" id="estado"></span>
+      </div>
+      <div class="tarjetas">
+        <div class="kpi" style="--c:var(--primario)"><div class="t">TOTAL WU (SALDOS)</div><div class="v" id="kWu">$0.00</div></div>
+        <div class="kpi" style="--c:var(--neutro)"><div class="t">ARQUEO TOTAL</div><div class="v" id="kArq">$0.00</div></div>
+        <div class="kpi" id="kDifT" style="--c:var(--exito)"><div class="t">DIFERENCIA VS CAPITAL</div><div class="v" id="kDif">$0.00</div><div class="n" id="kDifN"></div></div>
+        <div class="kpi" style="--c:var(--aviso)"><div class="t">UTILIDAD DEL DÍA</div><div class="v" id="kUtil">C$0.00</div></div>
+      </div>
+      <div class="pestanas" id="pestanas"></div>
+      <div id="hojas"><div class="cargando">Cargando…</div></div>
+    </section>
+
+    <!-- ============ REPORTES ============ -->
+    <section class="vista" id="v-reportes">
+      <div class="panel">
+        <h1>Reportes</h1>
+        <p class="sub">Todo lo que se guarda, con vista previa y exportación a PDF. Clic en una fecha abre ese día.</p>
+        <div class="filtros">
+          <label>Reporte<select class="sel" id="rTipo"></select></label>
+          <label id="rlDia">Fecha<input type="date" class="txt" id="rDia"></label>
+          <label id="rlDesde">Desde<input type="date" class="txt" id="rDesde"></label>
+          <label id="rlHasta">Hasta<input type="date" class="txt" id="rHasta"></label>
+          <button class="btn" id="rVer">Ver reporte</button>
+          <button class="btn peligro" id="rPdf" disabled>Exportar PDF</button>
+          <button class="btn sec chico" id="rMes">Este mes</button>
+        </div>
+        <div id="rSalida"><div class="hojarep"><p class="nota">Elige un reporte y pulsa “Ver reporte”.</p></div></div>
+      </div>
+    </section>
+
+    <!-- ============ CONFIGURACIÓN ============ -->
+    <section class="vista" id="v-config">
+      <div class="panel">
+        <h1>Configuración</h1>
+        <p class="sub">Parámetros del sistema. Se guardan en la base de datos MySQL.</p>
+        <div class="cfg">
+          <div class="tc"><h3>Datos de la agencia (salen en los PDF)</h3>
+            <div class="campo"><label>Nombre de la agencia</label><input class="txt" id="cNombre"></div>
+            <div class="campo"><label>Dirección</label><input class="txt" id="cDir"></div>
+            <div class="campo"><label>Teléfono</label><input class="txt" id="cTel"></div>
+            <div class="campo"><label>RUC</label><input class="txt" id="cRuc"></div>
+            <div class="campo"><label>Responsable (firma)</label><input class="txt" id="cResp"></div>
+          </div>
+          <div class="tc"><h3>Valores iniciales</h3>
+            <p class="nota">Solo se usan si no hay un día anterior guardado.</p>
+            <div class="campo"><label>Tasa de cambio (C$ por $)</label><input class="num" id="cTasa"></div>
+            <div class="campo"><label>Capital de trabajo ($)</label><input class="num" id="cCap"></div>
+            <div class="campo"><label>Tarifa MC (C$ por $)</label><input class="num" id="cTMC"></div>
+            <div class="campo"><label>Puntos VT (C$ por $)</label><input class="num" id="cTVT"></div>
+          </div>
+          <div class="tc"><h3>Bancos</h3>
+            <p class="nota">Un banco desactivado ya no sale en días nuevos, pero sigue saliendo en los días viejos que lo usaron.</p>
+            <table class="lista" id="lBancos"></table>
+            <button class="btn sec chico" id="addBanco">+ Agregar banco</button>
+          </div>
+          <div class="tc"><h3>Cajeros</h3>
+            <p class="nota">Igual que los bancos: desactivar no borra los días viejos.</p>
+            <table class="lista" id="lCajeros"></table>
+            <button class="btn sec chico" id="addCajero">+ Agregar cajero</button>
+          </div>
+          <div class="tc"><h3>Respaldo</h3>
+            <p class="nota">Descarga todos tus cierres y la configuración en un archivo, o restaura uno descargado antes.</p>
+            <button class="btn sec" id="bResp">Descargar respaldo</button>
+            <label class="btn sec" style="display:inline-block">Restaurar respaldo<input type="file" id="fResp" accept=".json" hidden></label>
+          </div>
+        </div>
+        <p style="margin-top:16px"><button class="btn" id="bGuardarCfg">Guardar configuración</button></p>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="login"><form class="d" id="loginForm" autocomplete="on">
+  <b class="lt">Cierre Diario</b>
+  <p class="nota">Escribe la contraseña de la agencia para entrar.</p>
+  <input type="password" class="txt" id="loginClave" placeholder="Contraseña" autocomplete="current-password" required>
+  <button class="btn" id="loginBtn" type="submit">Entrar</button>
+  <p class="lmsg" id="loginMsg"></p>
+</form></div>
+<div id="toast"></div>
+<div id="dlg"><div class="d"><p id="dlgTxt"></p><div class="acc"><button class="btn sec" id="dlgNo">Cancelar</button><button class="btn" id="dlgSi">Aceptar</button></div></div></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
